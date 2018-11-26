@@ -1,0 +1,60 @@
+{
+  "name": "with-resources",
+  "version": "1.0.0",
+  "description": "A higher order component to help fetch resources",
+  "main": "build/lib/index.js",
+  "module": "build/es/index.js",
+  "jsnext:main": "build/es/index.js",
+  "unpkg": "build/umd/with-resources.min.js",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/charshin/with-resources"
+  },
+  "scripts": {
+    "build": "npm run clean && npm run build:lib && npm run build:es && npm run build:umd && npm run build:umd:min",
+    "build:lib": "babel src --out-dir build/lib --ignore __tests__",
+    "build:es": "cross-env BABEL_ENV=es babel src --out-dir build/es --ignore __tests__",
+    "build:umd": "cross-env NODE_ENV=development webpack --mode='development' src/index.js -o build/umd/with-resources.js",
+    "build:umd:min": "webpack --mode='production' src/index.js -o build/umd/with-resources.min.js",
+    "clean": "rimraf build"
+  },
+  "keywords": [
+    "fetch",
+    "ajax",
+    "react",
+    "reactjs",
+    "redux",
+    "react-redux",
+    "decorator"
+  ],
+  "author": "Charlie Chau <chaunhihien@gmail.com> (http://github.com/charshin)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/charshin/with-resources/issues"
+  },
+  "files": [
+    "build"
+  ],
+  "dependencies": {
+    "@babel/runtime": "^7.1.5",
+    "ramda": "^0.26.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.1.5",
+    "@babel/core": "^7.1.6",
+    "@babel/plugin-proposal-decorators": "^7.1.6",
+    "@babel/plugin-proposal-object-rest-spread": "^7.0.0",
+    "@babel/plugin-transform-runtime": "^7.1.0",
+    "@babel/preset-env": "^7.1.6",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.4",
+    "cross-env": "^5.2.0",
+    "react": "^16.6.3",
+    "webpack": "^4.26.1",
+    "webpack-cli": "^3.1.2"
+  },
+  "peerDependencies": {
+    "react": "^16.0.0"
+  }
+}
