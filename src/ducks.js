@@ -1,5 +1,7 @@
 /* rxjs & ramda support tree-shaking */
-import * as rxjs from 'rxjs';
+import { of, from } from 'rxjs';
+import { mergeMap, map, catchError } from 'rxjs/operators';
+import { ofType } from 'redux-observable';
 import * as R from 'ramda';
 import update from 'immutability-helper';
 import { memoize } from './utils';
@@ -49,20 +51,20 @@ const createResourceDuck = ({ reduxPath, DM }) => (resourceType) => {
   */
   const epics = [
     action$ => action$.pipe(
-      rxjs.ofType(actionTypes.AJAX),
-      rxjs.mergeMap(
+      ofType(actionTypes.AJAX),
+      mergeMap(
         ({
           payload: {
             cargo, options: { useLast = false } = {}, onSuccess, onFailure,
           },
-        }) => rxjs.from(fetch(cargo, { memoize: { renew: !useLast } })).pipe(
-          rxjs.map((data) => {
+        }) => from(fetch(cargo, { memoize: { renew: !useLast } })).pipe(
+          map((data) => {
             onSuccess && onSuccess({ cargo, data });
             return actionCreators.ajaxSuccess({ cargo, data });
           }),
-          rxjs.catchError((error) => {
+          catchError((error) => {
             onFailure && onFailure({ cargo, error });
-            return rxjs.of(actionCreators.ajaxFailure({ cargo, error }));
+            return of(actionCreators.ajaxFailure({ cargo, error }));
           }),
         ),
       ),
@@ -74,9 +76,9 @@ const createResourceDuck = ({ reduxPath, DM }) => (resourceType) => {
     State Getters
   **************************************************
   */
-  const getState = R.path([].concat(reduxPath, ['resources', resourceType]));
-  const getMethod = method => (from, root = true) => R.path([].concat(reduxPath, root ? ['resources'] : [], [resourceType, method]), from);
-  const getStatus = method => (from, root = true) => R.path([].concat(reduxPath, root ? ['resources'] : [], [resourceType, method, 'status']), from);
+  const getState = R.path([].concat(reduxPath, resourceType));
+  const getMethod = method => (from, root = true) => R.path([].concat(root ? reduxPath : [], [resourceType, method]), from);
+  const getStatus = method => (from, root = true) => R.path([].concat(root ? reduxPath : [], [resourceType, method, 'status']), from);
 
   const getters = {
     getState,

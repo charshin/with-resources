@@ -1,13 +1,25 @@
 {
   "parser": "babel-eslint",
-  "plugins": ["react"],
+  "plugins": ["react", "jest"],
   "extends": ["airbnb-base"],
+  "env": {
+    "jest/globals": true
+  },
   "rules": {
     "react/jsx-uses-vars": ["error"],
-    "no-unused-expressions": ["error", { "allowShortCircuit": true, "allowTernary": true }],
+    "no-unused-expressions": [
+      "error",
+      { "allowShortCircuit": true, "allowTernary": true }
+    ],
     "class-methods-use-this": [
       "error",
-      { "exceptMethods": ["componentWillReceiveProps", "shouldComponentUpdate", "render"] }
+      {
+        "exceptMethods": [
+          "componentWillReceiveProps",
+          "shouldComponentUpdate",
+          "render"
+        ]
+      }
     ],
     "import/no-extraneous-dependencies": "off"
   }

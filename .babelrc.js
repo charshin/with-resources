@@ -22,7 +22,7 @@ module.exports = {
     // "@babel/plugin-proposal-throw-expressions",
 
     // Stage 3
-    '@babel/plugin-syntax-dynamic-import',
+    '@babel/plugin-syntax-dynamic-import', // babel needs this for parsing but won't touch the syntax --> webpack will handle
     // "@babel/plugin-syntax-import-meta",
     ['@babel/plugin-proposal-class-properties', { loose: false }],
     // "@babel/plugin-proposal-json-strings",
