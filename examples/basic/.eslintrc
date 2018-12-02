@@ -1,0 +1,13 @@
+{
+  "parser": "babel-eslint",
+  "plugins": ["react", "jest"],
+  "extends": ["airbnb-base"],
+  "env": {
+    "jest/globals": true,
+    "browser": true
+  },
+  "rules": {
+    "react/jsx-uses-vars": ["error"],
+    "import/no-extraneous-dependencies": "off"
+  }
+}
