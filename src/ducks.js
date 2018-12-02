@@ -92,7 +92,7 @@ const createResourceDuck = ({ reduxPath, DM }) => (resourceType) => {
     try {
       const {
         getters: resourceTypeGetters,
-      } = await import(/* webpackChunkName: 'rc-getters', webpackMode: 'lazy-once' */ `./getters/${resourceType}`);
+      } = await import(/* webpackChunkName: 'rc-getters', webpackMode: 'lazy-once', webpackExclude:  /README.md/ */ `./getters/${resourceType}`);
       R.forEachObjIndexed((v, k) => {
         getters[k] = v;
       }, resourceTypeGetters);

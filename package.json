@@ -13,8 +13,8 @@
   },
   "scripts": {
     "build": "yarn clean && yarn build:lib && yarn build:es && yarn build:umd && yarn build:umd:min",
-    "build:lib": "babel src --out-dir build/lib --ignore __tests__",
-    "build:es": "cross-env BABEL_ENV=es babel src --out-dir build/es --ignore __tests__",
+    "build:lib": "babel src --out-dir build/lib --ignore __tests__ && cp -r src/getters build/lib",
+    "build:es": "cross-env BABEL_ENV=es babel src --out-dir build/es --ignore __tests__ && cp -r src/getters build/es",
     "build:umd": "cross-env NODE_ENV=development webpack --mode='development' src/index.js -o build/umd/with-resources.js",
     "build:umd:min": "webpack --mode='production' src/index.js -o build/umd/with-resources.min.js",
     "clean": "rimraf build",
