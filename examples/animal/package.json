@@ -67,6 +67,7 @@
     "react-dom": "^16.7.0-alpha.2",
     "react-redux": "^5.1.1",
     "redux": "^4.0.1",
+    "redux-observable": "^1.0.0",
     "rxjs": "^6.3.3",
     "with-resources": "^1.0.0"
   }
