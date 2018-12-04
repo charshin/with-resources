@@ -6,6 +6,9 @@
   "module": "build/es/index.js",
   "jsnext:main": "build/es/index.js",
   "unpkg": "build/umd/with-resources.min.js",
+  "publishConfig": {
+    "access": "public"
+  },
   "sideEffects": false,
   "repository": {
     "type": "git",
