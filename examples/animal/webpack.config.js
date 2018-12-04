@@ -25,7 +25,7 @@ module.exports = ({ presets = [], staticContents = [], ...env } = DEFAULT_ENV) =
       },
       plugins: [
         new HtmlWebpackPlugin({
-          title: 'Webpack React Starter Kit',
+          title: 'Animal Lover',
           template: path.resolve(__dirname, 'public/index.html'),
         }),
       ],

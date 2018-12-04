@@ -41,6 +41,12 @@ module.exports = {
       commonjs: 'react-redux',
       amd: 'react-redux',
     },
+    rxjs: {
+      root: 'rxjs',
+      commonjs2: 'rxjs',
+      commonjs: 'rxjs',
+      amd: 'rxjs',
+    },
   },
   plugins: [
     new webpack.EnvironmentPlugin({
