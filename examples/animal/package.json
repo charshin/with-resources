@@ -68,6 +68,6 @@
     "react-redux": "^5.1.1",
     "redux": "^4.0.1",
     "rxjs": "^6.3.3",
-    "with-resources": "../.."
+    "with-resources": "^1.0.0"
   }
 }
