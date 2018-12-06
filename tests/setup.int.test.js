@@ -4,8 +4,8 @@ import { createStore, applyMiddleware } from 'redux';
 import { createEpicMiddleware, combineEpics } from 'redux-observable';
 import renderer from 'react-test-renderer';
 import * as R from 'ramda';
-import { getQueriesString } from '../utils';
-import setup, { withResource, withResourcesGetters, actionCreatorsOf } from '..';
+import { getQueriesString } from '../src/utils';
+import setup, { withResources, withResourcesGetters, actionCreatorsOf } from '../src';
 
 describe('setup', () => {
   const resourceTypes = { RES: 'res' };
@@ -22,7 +22,7 @@ describe('setup', () => {
       gettersOf: expect.anything(),
       epics: expect.anything(),
       reducer: expect.anything(),
-      withResource: expect.anything(),
+      withResources: expect.anything(),
       withResourcesGetters: expect.anything(),
     };
 
@@ -106,7 +106,7 @@ describe('it should', () => {
       }
     }
 
-    @withResource([
+    @withResources([
       {
         resourceType: resourceTypes.USERS,
         method: 'retrieveUsers',
