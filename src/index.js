@@ -14,7 +14,7 @@ let actionCreatorsOf;
 let gettersOf;
 let epics;
 let reducer;
-let withResource;
+let withResources;
 let withResourcesGetters;
 
 export {
@@ -24,7 +24,7 @@ export {
   gettersOf,
   epics,
   reducer,
-  withResource,
+  withResources,
   withResourcesGetters,
 };
 
@@ -50,7 +50,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
   )(resourcesDucks);
   reducer = combineReducers({ ...R.map(R.prop('reducer'), resourcesDucks) });
 
-  withResource = (operations, { prefix = '' } = {}) => (ComposedComponent) => {
+  withResources = (operations, { prefix = '' } = {}) => (ComposedComponent) => {
     const internalProps = ['data', 'actionCreators'];
     let prevData = {};
     @connect(
@@ -271,7 +271,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
     gettersOf,
     epics,
     reducer,
-    withResource,
+    withResources,
     withResourcesGetters,
   };
 };

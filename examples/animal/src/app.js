@@ -6,7 +6,7 @@ import CardActions from '@material-ui/core/CardActions';
 import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { withResource, resourceTypes } from 'with-resources';
+import { withResources, resourceTypes } from 'with-resources';
 import * as R from 'ramda';
 
 const styles = {
@@ -102,7 +102,7 @@ MediaCard.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withResource([
+export default withResources([
   {
     resourceType: resourceTypes.ANIMALS,
     method: 'retrieveOne',
