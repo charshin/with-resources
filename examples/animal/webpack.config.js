@@ -1,4 +1,5 @@
 const path = require('path');
+const webpack = require('webpack');
 const webpackMerge = require('webpack-merge');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { loadEnvironment, applyPresets } = require('./webpack_build');
@@ -27,6 +28,9 @@ module.exports = ({ presets = [], staticContents = [], ...env } = DEFAULT_ENV) =
         new HtmlWebpackPlugin({
           title: 'Animal Lover',
           template: path.resolve(__dirname, 'public/index.html'),
+        }),
+        new webpack.EnvironmentPlugin({
+          HOOK: false,
         }),
       ],
     },

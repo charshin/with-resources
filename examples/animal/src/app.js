@@ -29,12 +29,12 @@ const styles = {
   },
 };
 
-const MediaCard = withStyles(styles)(({ data, actionCreators, classes }) => (
+const MediaCard = ({ data, actionCreators, classes }) => (
   <Card className={classes.card}>
     <CardActionArea>
       <CardMedia
         className={classes.media}
-        image={R.path([resourceTypes.ANIMALS, 'retrieveOne', 'image'], data)}
+        image={R.pathOr(' ', [resourceTypes.ANIMALS, 'retrieveOne', 'image'], data)}
       />
       {R.path([resourceTypes.ANIMALS, 'retrieveOne', 'status', 'loading'], data) && (
         <CircularProgress className={classes.loading} />
@@ -94,7 +94,7 @@ const MediaCard = withStyles(styles)(({ data, actionCreators, classes }) => (
       </Button>
     </CardActions>
   </Card>
-));
+);
 
 MediaCard.propTypes = {
   data: PropTypes.object.isRequired,
@@ -111,6 +111,6 @@ export default withResources([
         queries: [{ name: 'kind', value: 'fox' }],
       },
     },
-    options: { runOnDidMount: true },
+    options: { autorun: true },
   },
-])(MediaCard);
+])(withStyles(styles)(MediaCard));
