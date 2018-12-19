@@ -115,7 +115,7 @@ describe('it should', () => {
             queries: [{ name: 'page', value: 1 }, { name: 'pageSize', value: 10 }],
           },
         },
-        options: { runOnDidMount: true },
+        options: { autorun: true },
       },
     ])
     class TestComponent extends React.Component {

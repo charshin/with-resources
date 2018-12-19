@@ -4,7 +4,7 @@ import PropTypes from 'prop-types';
 import { combineReducers, bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as R from 'ramda';
-import { getDisplayName } from './utils';
+import { getDisplayName, shallowEqual } from './utils';
 import {
   StoreContext,
   useDerivedState,
@@ -89,17 +89,12 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
       extract,
     )(operations);
   };
+
+  withResources = (rawOperations, { prefix = '' } = {}) => (ComposedComponent) => {
+    const operations = mergeOperations(rawOperations);
     const internalProps = ['data', 'actionCreators'];
     let prevData = {};
     @connect(
-      // state => ({
-      //   data: R.fromPairs(
-      //     R.map(
-      //       ({ resourceType }) => [resourceType, gettersOf(resourceType).getState(state)],
-      //       operations,
-      //     ),
-      //   ),
-      // }),
       (state) => {
         const nextData = R.fromPairs(
           R.map(
@@ -107,16 +102,9 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
             operations,
           ),
         );
-        // console.log('%cnextData', 'font-size: 12px; color: #00b3b3', nextData);
-        // Shallow comparison
-        const changed = R.pipe(
-          R.keys,
-          R.any(k => prevData[k] !== nextData[k]),
-        )(nextData);
-        // console.log('%cchanged', 'font-size: 12px; color: #00b3b3', changed);
         // eslint-disable-next-line
         return {
-          data: changed ? (prevData = nextData) : prevData,
+          data: shallowEqual(prevData, nextData) ? prevData : (prevData = nextData),
         };
       },
       dispatch => ({
@@ -147,14 +135,10 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
         const externalProps = R.omit(internalProps, this.props);
         R.forEach(
           ({
-            resourceType,
-            method,
-            input,
-            options: { runOnDidMount = false, useLast, reset } = {},
+            resourceType, method, input, options: { autorun, useLast, reset } = {},
           }) => {
             reset && actionCreators[resourceType].reset({ cargo: { method } });
-            // TODO: Change name to run/execute
-            runOnDidMount
+            autorun
               && (R.is(Function, input)
                 ? actionCreators[resourceType].ajax({
                   cargo: {
@@ -175,19 +159,19 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
         const { actionCreators } = this.props;
         R.map(
           ({
-            resourceType, method, input, options: { runOnInputChange = false, useLast } = {},
+            resourceType, method, input, options: { runOnInputChange = true, useLast } = {},
           }) => runOnInputChange
             && R.is(Function, input)
             && do {
               const externalProps = R.omit(internalProps, this.props);
-              const computedInput = input(externalProps);
-              // Deep comparison
-              JSON.stringify(this[`${resourceType}.${method}.input`])
-                !== JSON.stringify(computedInput)
+              const prevInput = this[`${resourceType}.${method}.input`];
+              const nextInput = input(externalProps);
+              this[`${resourceType}.${method}.input`] = nextInput;
+              shallowEqual(prevInput, nextInput)
                 && actionCreators[resourceType].ajax({
                   cargo: {
                     method,
-                    input: (this[`${resourceType}.${method}.input`] = computedInput),
+                    input: nextInput,
                   },
                   options: { useLast },
                 });
@@ -209,35 +193,35 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
           loading: R.reduce(
             R.or,
             false,
-            R.map(({ resourceType, method, options: { runOnDidMount = false, reset } = {} }) => {
+            R.map(({ resourceType, method, options: { autorun, reset } = {} }) => {
               switch (true) {
-                case !this.mounted && runOnDidMount:
+                case !this.mounted && autorun:
                   return true;
                 case !this.mounted && reset:
                   return null;
                 default:
-                  return R.path([resourceType, method, 'status', 'loading'], data);
+                  return R.pathOr(null, [resourceType, method, 'status', 'loading'], data);
               }
             })(methodfulOperations),
           ),
           success: R.reduce(
             R.and,
             true,
-            R.map(({ resourceType, method, options: { runOnDidMount = false, reset } = {} }) => {
+            R.map(({ resourceType, method, options: { autorun, reset } = {} }) => {
               switch (true) {
-                case !this.mounted && runOnDidMount:
+                case !this.mounted && autorun:
                   return null;
                 case !this.mounted && reset:
                   return null;
                 default:
-                  return R.pathOr(true, [resourceType, method, 'status', 'success'], data);
+                  return R.pathOr(null, [resourceType, method, 'status', 'success'], data);
               }
             })(methodfulOperations),
           ),
           error: R.pipe(
-            R.map(({ resourceType, method, options: { runOnDidMount = false, reset } = {} }) => {
+            R.map(({ resourceType, method, options: { autorun, reset } = {} }) => {
               switch (true) {
-                case !this.mounted && runOnDidMount:
+                case !this.mounted && autorun:
                   return null;
                 case !this.mounted && reset:
                   return null;
@@ -265,7 +249,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
           }),
         )(this.props);
 
-        // TODO: Consider rendering Loading on the first render
+        // console.log('%cpassedThroughProps: ', 'font-size: 12px; color: #00b3b3', passedThroughProps);
 
         return <ComposedComponent {...passedThroughProps} />;
       }
