@@ -2451,6 +2451,14 @@ create-hmac@^1.1.0, create-hmac@^1.1.2, create-hmac@^1.1.4:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
+cross-env@^5.2.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/cross-env/-/cross-env-5.2.0.tgz#6ecd4c015d5773e614039ee529076669b9d126f2"
+  integrity sha512-jtdNFfFW1hB7sMhr/H6rW1Z45LFqyI431m3qU6bFXcQ3Eh7LtBuG3h74o7ohHZ3crrRkkqHlo4jYHFPcjroANg==
+  dependencies:
+    cross-spawn "^6.0.5"
+    is-windows "^1.0.0"
+
 cross-spawn@^3.0.0:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/cross-spawn/-/cross-spawn-3.0.1.tgz#1256037ecb9f0c5f79e3d6ef135e30770184b982"
@@ -3094,6 +3102,11 @@ eslint-plugin-jest@^22.1.0:
   version "22.1.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-jest/-/eslint-plugin-jest-22.1.0.tgz#9a4dfa3367563e8301560a7fb92ec309096dbca3"
   integrity sha512-WcQd5LxEoAS20zuWEAd8CX0pVC+gGInZPcsoYvK5w7BrEJNmltyTxYYh1r0ct4GsahD2GvNySlcTcLtK2amFZA==
+
+eslint-plugin-react-hooks@^0.0.0:
+  version "0.0.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-react-hooks/-/eslint-plugin-react-hooks-0.0.0.tgz#9988f14082a159931c3dfa9ba699130457da927a"
+  integrity sha512-SXyU7C3E8AJbXKMdb10P/zHazcxzfuWR5OFwAVZKXVU7P/H56NLszVG6WdQBo9Pt80FfnPXtUGGbWhs3/98N4w==
 
 eslint-plugin-react@^7.11.1:
   version "7.11.1"
@@ -4284,9 +4297,9 @@ ignore@^4.0.6:
   integrity sha512-cyFDKrqc/YdcWFniJhzI42+AzS+gNwmUzOSFcRCQYwySuBBBy/KjuxWLZ/FHEH6Moq1NizMOBWyTcv8O4OZIMg==
 
 immutability-helper@^2.8.1:
-  version "2.8.1"
-  resolved "https://registry.yarnpkg.com/immutability-helper/-/immutability-helper-2.8.1.tgz#3c5ec05fcd83676bfae7146f319595243ad904f4"
-  integrity sha512-8AVB5EUpRBUdXqfe4cFsFECsOIZ9hX/Arl8B8S9/tmwpYv3UWvOsXUPOjkuZIMaVxfSWkxCzkng1rjmEoSWrxQ==
+  version "2.9.0"
+  resolved "https://registry.yarnpkg.com/immutability-helper/-/immutability-helper-2.9.0.tgz#04a1c646300cd3a68aa5dc1daa7758da2ca75292"
+  integrity sha512-2LYtDuGugMLyoFV0qGvblnq39E2VVQ9m4dDktlRLVBBVV1LnUMK0rlqkbtlUjfT1UJO876OobtPlNZTEbOOYVQ==
   dependencies:
     invariant "^2.2.0"
 
@@ -4717,7 +4730,7 @@ is-utf8@^0.2.0:
   resolved "https://registry.yarnpkg.com/is-utf8/-/is-utf8-0.2.1.tgz#4b0da1442104d1b336340e80797e865cf39f7d72"
   integrity sha1-Sw2hRCEE0bM2NA6AeX6GXPOffXI=
 
-is-windows@^1.0.2:
+is-windows@^1.0.0, is-windows@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/is-windows/-/is-windows-1.0.2.tgz#d1850eb9791ecd18e6182ce12a30f396634bb19d"
   integrity sha512-eXK1UInq2bPmjyX6e3VHIzMLobc4J94i4AWn+Hpq3OU5KkrRC96OAcR3PRJ/pGu6m8TRnBHP9dkXQVsT/COVIA==
@@ -8838,10 +8851,10 @@ wide-align@^1.1.0:
   dependencies:
     string-width "^1.0.2 || 2"
 
-with-resources@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/with-resources/-/with-resources-1.0.0.tgz#39b0b0df8f5de8e5d2551ae247e8cc15669716a7"
-  integrity sha512-MxlUbZLmKRfX1IkmPYGup43mgQx5yDPDJDREOaile6Tq8ju0CO29BwZnd6lK7wTcL2EObjU+UUHqYyV0ASIuXg==
+with-resources@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/with-resources/-/with-resources-1.0.1.tgz#fa1597b40ed8976d6f1aaf9be40bfa2cca1c4ead"
+  integrity sha512-QM/ZQbbQ1nqQxmc1PIn8c7DcDJdEBWQgUrrkqkxhgyGmqI2g2Qpl6yV0Ek07JaKST4t0MaPEGoiKdTir/bSbhA==
   dependencies:
     "@babel/runtime" "^7.1.5"
     immutability-helper "^2.8.1"
