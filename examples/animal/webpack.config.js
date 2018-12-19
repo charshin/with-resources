@@ -24,6 +24,15 @@ module.exports = ({ presets = [], staticContents = [], ...env } = DEFAULT_ENV) =
         host: '0.0.0.0',
         port: 7000,
       },
+      module: {
+        rules: [
+          {
+            test: /\.jsx?$/,
+            use: ['babel-loader'],
+            exclude: /node_modules/,
+          },
+        ],
+      },
       plugins: [
         new HtmlWebpackPlugin({
           title: 'Animal Lover',
