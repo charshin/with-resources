@@ -24,6 +24,7 @@
     "example": "(cd ./examples/$which && yarn && yarn start)",
     "example:server": "which=server yarn example",
     "example:animal": "which=animal yarn example",
+    "example:animal:hook": "cross-env HOOK=yes which=animal yarn example",
     "test": "jest",
     "test:watch": "yarn test --watch",
     "prepublish": "yarn build && yarn pack && mkdir -p tarballs && mv *.tgz tarballs"
@@ -74,12 +75,13 @@
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-jest": "^22.1.0",
     "eslint-plugin-react": "^7.11.1",
+    "eslint-plugin-react-hooks": "^0.0.0",
     "jest": "^23.6.0",
     "node-sass": "^4.10.0",
     "prettier-eslint": "^8.8.2",
-    "react": "^16.6.3",
+    "react": "^16.7.0-alpha.2",
     "react-redux": "^5.1.1",
-    "react-test-renderer": "^16.6.3",
+    "react-test-renderer": "^16.7.0-alpha.2",
     "redux": "^4.0.1",
     "redux-observable": "^1.0.0",
     "rxjs": "^6.3.3",
@@ -89,7 +91,8 @@
     "webpack-cli": "^3.1.2"
   },
   "peerDependencies": {
-    "react": "^16.0.0",
+    "react": "^16.7.0-alpha.2",
+    "react-dom": "^16.7.0-alpha.2",
     "react-redux": "^5.0.0",
     "redux": ">=4 <5",
     "redux-observable": "^1.0.0",

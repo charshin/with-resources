@@ -1,10 +1,17 @@
 /* eslint-disable no-underscore-dangle, import/no-mutable-exports */
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { combineReducers, bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as R from 'ramda';
 import { getDisplayName } from './utils';
+import {
+  StoreContext,
+  useDerivedState,
+  useDispatchableActions,
+  usePrevious,
+  useOldIf,
+} from './hooks';
 import Loading from './utils/components/Loading';
 import generateResourcesDucks from './ducks';
 
@@ -16,6 +23,7 @@ let epics;
 let reducer;
 let withResources;
 let withResourcesGetters;
+let useResources;
 
 export {
   resourceTypes,
@@ -26,6 +34,8 @@ export {
   reducer,
   withResources,
   withResourcesGetters,
+  StoreContext,
+  useResources,
 };
 
 export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
@@ -50,7 +60,35 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
   )(resourcesDucks);
   reducer = combineReducers({ ...R.map(R.prop('reducer'), resourcesDucks) });
 
-  withResources = (operations, { prefix = '' } = {}) => (ComposedComponent) => {
+  const mergeOperations = (operations) => {
+    const groupByResourceTypeNMethod = R.pipe(
+      R.groupBy(R.prop('resourceType')),
+      R.map(R.groupBy(R.prop('method'))),
+    );
+    const mergeInputNOptions = R.map(R.map(R.reduce(R.mergeDeepRight, {})));
+    const dropMethodlessIfHasMethodful = R.map(
+      R.when(
+        R.pipe(
+          R.keys,
+          R.length,
+          R.lt(1),
+        ),
+        R.omit(['undefined']),
+      ),
+    );
+    const extract = R.pipe(
+      R.values,
+      R.map(R.values),
+      R.flatten,
+    );
+
+    return R.pipe(
+      groupByResourceTypeNMethod,
+      mergeInputNOptions,
+      dropMethodlessIfHasMethodful,
+      extract,
+    )(operations);
+  };
     const internalProps = ['data', 'actionCreators'];
     let prevData = {};
     @connect(
@@ -264,6 +302,144 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
     return WithResourcesGetters;
   };
 
+  const useOperationsWithPending = (operations) => {
+    const prevOperations = usePrevious(operations, []);
+    const operationsWithPending = R.map(
+      R.pipe(
+        R.juxt([
+          ({
+            resourceType, method, input, options: { autorun, reset },
+          }) => ({
+            run:
+              autorun
+              && R.pipe(
+                R.find(R.whereEq({ resourceType, method })),
+                R.prop('input'),
+                R.complement(R.identical)(input),
+              )(prevOperations),
+            reset:
+              ['once', 'always'].includes(reset)
+              && R.pipe(
+                R.find(R.whereEq({ resourceType, method })),
+                R.path(['options', 'reset']),
+                prevReset => (reset === 'once' && prevReset !== 'once') || reset === 'always',
+              )(prevOperations),
+          }),
+          R.identity,
+        ]),
+        R.apply(R.assoc('pending')),
+      ),
+    )(operations);
+    return operationsWithPending;
+  };
+
+  useResources = (rawOperations) => {
+    const operations = mergeOperations(rawOperations);
+    const methodfulOperations = R.filter(R.prop('method'))(operations);
+
+    // console.log('%coperations', 'font-size: 12px; color: #00b3b3', operations);
+
+    const hasSameRcSet = (prevOperations, nextOperations) => {
+      const prevRcSet = new Set(R.map(R.prop('resourceType'))(prevOperations));
+      const nextRcSet = new Set(R.map(R.prop('resourceType'))(nextOperations));
+      return R.equals(prevRcSet, nextRcSet);
+    };
+
+    /* NOTE:
+      We only re-connect to redux store if the computed set of resource types changes
+    */
+    const mapState = useCallback(
+      state => R.pipe(
+        R.map(({ resourceType }) => [resourceType, gettersOf(resourceType).getState(state)]),
+        R.fromPairs,
+      )(operations),
+      [useOldIf(operations, hasSameRcSet, [])],
+    );
+    const bindDispatch = useCallback(
+      dispatch => R.pipe(
+        R.map(({ resourceType }) => [
+          resourceType,
+          bindActionCreators(actionCreatorsOf(resourceType), dispatch),
+        ]),
+        R.fromPairs,
+      )(operations),
+      [useOldIf(operations, hasSameRcSet, [])],
+    );
+
+    const data = useDerivedState(mapState);
+    const actionCreators = useDispatchableActions(bindDispatch);
+    const operationsWithPending = useOperationsWithPending(methodfulOperations);
+
+    const status = {
+      loading: R.reduce(
+        R.or,
+        false,
+        R.map(
+          ({ resourceType, method, pending: { run: pendingRun, reset: pendingReset } }) => !!pendingRun
+            || (pendingReset
+              ? null
+              : R.pathOr(null, [resourceType, method, 'status', 'loading'], data)),
+        )(operationsWithPending),
+      ),
+      success: R.reduce(
+        R.and,
+        true,
+        R.map(({ resourceType, method, pending: { run: pendingRun, reset: pendingReset } }) => (pendingRun || pendingReset
+          ? null
+          : R.pathOr(null, [resourceType, method, 'status', 'success'], data)))(operationsWithPending),
+      ),
+      error: R.pipe(
+        R.map(({ resourceType, method, pending: { run: pendingRun, reset: pendingReset } = {} }) => (pendingRun || pendingReset
+          ? null
+          : R.path([resourceType, method, 'status', 'error'], data)
+              && `${resourceType}.${method}`)),
+        R.reject(R.either(R.isNil, R.isEmpty)),
+        R.join(', '),
+        R.unless(R.isEmpty, R.concat('Got error in ')),
+      )(operationsWithPending),
+    };
+
+    useEffect(() => {
+      R.forEach(({ resourceType, method, pending: { reset: pendingReset } }) => {
+        pendingReset && actionCreators[resourceType].reset({ cargo: { method } });
+      })(operationsWithPending);
+    });
+
+    useEffect(() => {
+      R.forEach(
+        ({
+          resourceType,
+          method,
+          input,
+          options: { useLast } = {},
+          pending: { run: pendingRun },
+        }) => {
+          pendingRun
+            && actionCreators[resourceType].ajax({
+              cargo: { method, input },
+              options: { useLast },
+            });
+        },
+      )(operationsWithPending);
+    });
+
+    // console.log('%cuseResources', 'font-size: 12px; color: #00b3b3', {
+    //   data: {
+    //     ...data,
+    //     status,
+    //   },
+    //   actionCreators,
+    // });
+
+    return {
+      data: {
+        ...data,
+        status,
+      },
+      actionCreators,
+    };
+  };
+
   return {
     resourceTypes,
     actionTypesOf,
@@ -273,5 +449,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
     reducer,
     withResources,
     withResourcesGetters,
+    StoreContext,
+    useResources,
   };
 };

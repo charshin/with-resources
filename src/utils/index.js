@@ -29,8 +29,8 @@ const formatBytes = (bytes, decimals = 2) => {
 
 const round = (number, precision) => {
   const shift = (num, exponent) => {
-    const numArray = (`${num}`).split('e');
-    return +(`${numArray[0]}e${numArray[1] ? +numArray[1] + exponent : exponent}`);
+    const numArray = `${num}`.split('e');
+    return +`${numArray[0]}e${numArray[1] ? +numArray[1] + exponent : exponent}`;
   };
   return shift(Math.round(shift(number, +precision)), -precision);
 };
@@ -79,6 +79,33 @@ const shallowDiff = R.curry((a, b) => {
   return R.dropLast(2, diffProps);
 });
 
+const shallowEqual = (objA, objB) => {
+  const hasOwn = Object.prototype.hasOwnProperty;
+
+  // eslint-disable-next-line
+  const is = (x, y) => (x === y ? x !== 0 || y !== 0 || 1 / x === 1 / y : x !== x && y !== y);
+
+  if (is(objA, objB)) return true;
+
+  if (typeof objA !== 'object' || objA === null || typeof objB !== 'object' || objB === null) {
+    return false;
+  }
+
+  const keysA = Object.keys(objA);
+  const keysB = Object.keys(objB);
+
+  if (keysA.length !== keysB.length) return false;
+
+  // eslint-disable-next-line
+  for (let i = 0; i < keysA.length; i++) {
+    if (!hasOwn.call(objB, keysA[i]) || !is(objA[keysA[i]], objB[keysA[i]])) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
 // TODO: Rename to findByProp
 const findBy = R.curry((name, value, arr) => R.find(R.propEq(name, value), arr));
 const findByPath = R.curry((path, value, arr) => R.find(R.pathEq(path, value), arr));
@@ -118,6 +145,7 @@ export {
   formatBytes,
   round,
   memoize,
+  shallowEqual,
   shallowDiff,
   findBy,
   findByPath,

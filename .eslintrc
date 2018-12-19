@@ -1,12 +1,13 @@
 {
   "parser": "babel-eslint",
-  "plugins": ["react", "jest"],
+  "plugins": ["react", "react-hooks", "jest"],
   "extends": ["airbnb-base"],
   "env": {
     "jest/globals": true
   },
   "rules": {
     "react/jsx-uses-vars": ["error"],
+    "react-hooks/rules-of-hooks": "error",
     "no-unused-expressions": [
       "error",
       { "allowShortCircuit": true, "allowTernary": true }
