@@ -6,7 +6,9 @@ import CardActions from '@material-ui/core/CardActions';
 import CardMedia from '@material-ui/core/CardMedia';
 import Button from '@material-ui/core/Button';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import { withResources, resourceTypes } from 'with-resources';
+import {
+  withResources, resourceTypes, withResourcesGetters, gettersOf,
+} from 'with-resources';
 import * as R from 'ramda';
 
 const styles = {
@@ -34,9 +36,9 @@ const MediaCard = ({ data, actionCreators, classes }) => (
     <CardActionArea>
       <CardMedia
         className={classes.media}
-        image={R.pathOr(' ', [resourceTypes.ANIMALS, 'retrieveOne', 'image'], data)}
+        image={gettersOf(resourceTypes.ANIMALS).getAnimal()(data)}
       />
-      {R.path([resourceTypes.ANIMALS, 'retrieveOne', 'status', 'loading'], data) && (
+      {gettersOf(resourceTypes.ANIMALS).getStatus()('retrieveOne')(data).loading && (
         <CircularProgress className={classes.loading} />
       )}
     </CardActionArea>
@@ -102,15 +104,19 @@ MediaCard.propTypes = {
   classes: PropTypes.object.isRequired,
 };
 
-export default withResources([
-  {
-    resourceType: resourceTypes.ANIMALS,
-    method: 'retrieveOne',
-    input: {
-      params: {
-        queries: [{ name: 'kind', value: 'fox' }],
+export default R.compose(
+  withResources([
+    {
+      resourceType: resourceTypes.ANIMALS,
+      method: 'retrieveOne',
+      input: {
+        params: {
+          queries: [{ name: 'kind', value: 'fox' }],
+        },
       },
+      options: { autorun: true },
     },
-    options: { autorun: true },
-  },
-])(withStyles(styles)(MediaCard));
+  ]),
+  withResourcesGetters,
+  withStyles(styles),
+)(MediaCard);

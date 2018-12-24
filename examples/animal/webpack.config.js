@@ -41,6 +41,7 @@ module.exports = ({ presets = [], staticContents = [], ...env } = DEFAULT_ENV) =
         new webpack.EnvironmentPlugin({
           HOOK: false,
         }),
+        new webpack.ContextReplacementPlugin(/getters/, path.resolve(__dirname, 'src/data/getters')),
       ],
     },
   );

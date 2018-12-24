@@ -77,8 +77,8 @@ const createResourceDuck = ({ reduxPath, DM }) => (resourceType) => {
   **************************************************
   */
   const getState = R.path([].concat(reduxPath, resourceType));
-  const getMethod = method => (from, root = true) => R.path([].concat(root ? reduxPath : [], [resourceType, method]), from);
-  const getStatus = method => (from, root = true) => R.path([].concat(root ? reduxPath : [], [resourceType, method, 'status']), from);
+  const getMethod = ({ root } = {}) => method => R.path([].concat(root ? reduxPath : [], [resourceType, method]));
+  const getStatus = ({ root } = {}) => method => R.path([].concat(root ? reduxPath : [], [resourceType, method, 'status']));
 
   const getters = {
     getState,
@@ -90,9 +90,7 @@ const createResourceDuck = ({ reduxPath, DM }) => (resourceType) => {
   /* IMPORTANT: Must use webpack.ContextReplacementPlugin to supply the correct context */
   getters.loaded = (async () => {
     try {
-      const {
-        getters: resourceTypeGetters,
-      } = await import(/* webpackChunkName: 'rc-getters', webpackMode: 'lazy-once', webpackExclude:  /README.md/ */ `./getters/${resourceType}`);
+      const { default: resourceTypeGetters } = await import(/* webpackChunkName: 'rc-getters', webpackMode: 'lazy-once', webpackExclude:  /README.md/ */ `./getters/${resourceType}`);
       R.forEachObjIndexed((v, k) => {
         getters[k] = v;
       }, resourceTypeGetters);
