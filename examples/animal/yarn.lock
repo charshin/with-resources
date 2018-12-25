@@ -8851,10 +8851,10 @@ wide-align@^1.1.0:
   dependencies:
     string-width "^1.0.2 || 2"
 
-with-resources@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/with-resources/-/with-resources-1.0.1.tgz#fa1597b40ed8976d6f1aaf9be40bfa2cca1c4ead"
-  integrity sha512-QM/ZQbbQ1nqQxmc1PIn8c7DcDJdEBWQgUrrkqkxhgyGmqI2g2Qpl6yV0Ek07JaKST4t0MaPEGoiKdTir/bSbhA==
+with-resources@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/with-resources/-/with-resources-1.0.2.tgz#47610cc1c7f2791c220f74df8e8c928c8bb94131"
+  integrity sha512-BK7D0RZ8IRHxlcsp8a/aPax/0UjZgy1ewj0dij6tHmPydjJbGOjJN8Lsj/f5oYul9krAbItrilhNMArkW/pfaA==
   dependencies:
     "@babel/runtime" "^7.1.5"
     immutability-helper "^2.8.1"
