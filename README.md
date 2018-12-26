@@ -420,9 +420,9 @@ or
 yarn example:animal
 ```
 
-<img src='examples/animal/public/screenshots/fox.png' width=250/>
-<img src='examples/animal/public/screenshots/cat.png' width=250/>
-<img src='examples/animal/public/screenshots/dog.png' width=250/>
+<img src='examples/animal/public/screenshots/fox.png' width=350/>
+<img src='examples/animal/public/screenshots/cat.png' width=350/>
+<img src='examples/animal/public/screenshots/dog.png' width=350/>
 
 ## React Hook
 _**with-resources**_ also provides experimental hook, i.e. `useResources`
