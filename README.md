@@ -465,6 +465,9 @@ const { data, actionCreators } = useResources([
 
 Make sure that you use `useMemo` to pass the same object _input_ to `useResources` on every render, otherwise `useResources` will trigger a new request with the new object _input_.
 
+## Server Side Rendering
+>Coming soon 🚧🚧🚧
+
 ## Author
 
 Charlie Chau – chaunhihien@gmail.com

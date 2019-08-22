@@ -29,6 +29,6 @@ module.exports = {
 
     ['@babel/transform-runtime', { useESModules: es }],
     'react-require',
-    !es && ['@babel/transform-modules-commonjs'],
+    ...(es ? [] : ['@babel/transform-modules-commonjs', 'dynamic-import-node']),
   ].filter(Boolean),
 };

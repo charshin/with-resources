@@ -1,6 +1,6 @@
 {
   "name": "with-resources",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A higher order component to help fetch resources",
   "main": "build/lib/index.js",
   "module": "build/es/index.js",
@@ -67,6 +67,7 @@
     "babel-eslint": "^10.0.1",
     "babel-jest": "^23.6.0",
     "babel-loader": "^8.0.4",
+    "babel-plugin-dynamic-import-node": "^2.3.0",
     "babel-plugin-react-require": "^3.0.1",
     "cross-env": "^5.2.0",
     "css-loader": "^1.0.1",
