@@ -292,7 +292,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
       R.pipe(
         R.juxt([
           ({
-            resourceType, method, input, options: { autorun, reset },
+            resourceType, method, input, options: { autorun, reset } = {},
           }) => ({
             run:
               autorun
@@ -350,6 +350,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
       [useOldIf(operations, hasSameRcSet, [])],
     );
 
+    // TODO: Re-implement using useSelector & useDispatch
     const data = useDerivedState(mapState);
     const actionCreators = useDispatchableActions(bindDispatch);
     const operationsWithPending = useOperationsWithPending(methodfulOperations);

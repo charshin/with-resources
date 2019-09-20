@@ -1,5 +1,5 @@
 import {
-  createContext, useContext, useState, useEffect, useRef,
+  createContext, useContext, useState, useEffect, useRef, useMemo,
 } from 'react';
 import { shallowEqual } from './utils';
 
@@ -57,8 +57,9 @@ const useDerivedState = (mapState) => {
 
 const useDispatchableActions = (bindDispatch) => {
   const store = useContext(StoreContext);
-
-  return bindDispatch(store.dispatch);
+  // * This is only for performance optimization. Do not rely on this for semantic guarantee
+  // * https://reactjs.org/docs/hooks-reference.html#usememo
+  return useMemo(() => bindDispatch(store.dispatch), [bindDispatch]);
 };
 
 const usePrevious = (value, initialValue) => {
