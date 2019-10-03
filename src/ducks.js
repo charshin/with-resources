@@ -4,6 +4,7 @@ import { mergeMap, map, catchError } from 'rxjs/operators';
 import { ofType } from 'redux-observable';
 import * as R from 'ramda';
 import update from 'immutability-helper';
+import hash from 'object-hash';
 import { memoize } from './utils';
 
 const createResourceDuck = ({ reduxPath, DM }) => (resourceType) => {
@@ -78,7 +79,7 @@ const createResourceDuck = ({ reduxPath, DM }) => (resourceType) => {
   */
   const getState = R.path([].concat(reduxPath, resourceType));
   const getMethod = ({ root } = {}) => method => R.path([].concat(root ? reduxPath : [], [resourceType, method]));
-  const getStatus = ({ root } = {}) => method => R.path([].concat(root ? reduxPath : [], [resourceType, method, 'status']));
+  const getStatus = ({ root } = {}) => (method, input = {}) => R.path([].concat(root ? reduxPath : [], [resourceType, method, hash(input), 'status']));
 
   const getters = {
     getState,
@@ -115,8 +116,10 @@ const createResourceDuck = ({ reduxPath, DM }) => (resourceType) => {
   const initState = {
     // methods
     // [method]: {
-    //   status: { loading, success, error },
-    //   ...data,
+    //   [hash(input)]: {
+    //     status: { loading, success, error },
+    //     ...data,
+    //   }
     // }
   };
 
@@ -124,50 +127,70 @@ const createResourceDuck = ({ reduxPath, DM }) => (resourceType) => {
     switch (action.type) {
       case actionTypes.AJAX: {
         const {
-          cargo: { method },
+          cargo: { method, input = {} },
         } = action.payload;
-        return update(state, {
+        const hashedInput = hash(input);
+        return {
+          ...state,
           [method]: {
-            [state[method] ? '$merge' : '$set']: {
+            ...state[method],
+            [hashedInput]: {
+              ...(state[method] ? state[method][hashedInput] : {}),
+              input,
               status: { loading: true, success: null, error: null },
             },
           },
-        });
+        };
       }
       case actionTypes.AJAX_SUCCESS: {
         const {
-          cargo: { method },
+          cargo: { method, input = {} },
           data,
         } = action.payload;
-        return update(state, {
+        const hashedInput = hash(input);
+        return {
+          ...state,
           [method]: {
-            [state[method] ? '$merge' : '$set']: {
+            ...state[method],
+            [hashedInput]: {
+              ...(state[method] ? state[method][hashedInput] : {}),
               status: { loading: false, success: true, error: '' },
               ...data[method],
             },
           },
-        });
+        };
       }
       case actionTypes.AJAX_FAILURE: {
         const {
-          cargo: { method },
+          cargo: { method, input = {} },
           error,
         } = action.payload;
-        return update(state, {
+        const hashedInput = hash(input);
+        return {
+          ...state,
           [method]: {
-            [state[method] ? '$merge' : '$set']: {
+            ...state[method],
+            [hashedInput]: {
+              ...(state[method] ? state[method][hashedInput] : {}),
               status: { loading: false, success: false, error },
             },
           },
-        });
+        };
       }
       case actionTypes.RESET: {
         const {
-          cargo: { method },
+          cargo: { method, input = {} },
         } = action.payload;
-        return update(state, {
-          [method]: { $set: { status: { loading: null, success: null, error: null } } },
-        });
+        const hashedInput = hash(input);
+        return {
+          ...state,
+          [method]: {
+            ...state[method],
+            [hashedInput]: {
+              status: { loading: null, success: null, error: null }
+            },
+          },
+        };
       }
       case actionTypes.CLEAR_CACHE: {
         const { options: { timeout = CACHE_TIMEOUT } = {} } = action.payload;

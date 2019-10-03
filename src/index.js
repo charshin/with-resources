@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import { combineReducers, bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as R from 'ramda';
+import hash from 'object-hash';
 import { getDisplayName, shallowEqual } from './utils';
 import {
   StoreContext,
@@ -137,7 +138,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
           ({
             resourceType, method, input, options: { autorun, useLast, reset } = {},
           }) => {
-            reset && actionCreators[resourceType].reset({ cargo: { method } });
+            reset && actionCreators[resourceType].reset({ cargo: { method, input } });
             autorun
               && (R.is(Function, input)
                 ? actionCreators[resourceType].ajax({
@@ -193,33 +194,33 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
           loading: R.reduce(
             R.or,
             false,
-            R.map(({ resourceType, method, options: { autorun, reset } = {} }) => {
+            R.map(({ resourceType, method, input = {}, options: { autorun, reset } = {} }) => {
               switch (true) {
                 case !this.mounted && autorun:
                   return true;
                 case !this.mounted && reset:
                   return null;
                 default:
-                  return R.pathOr(null, [resourceType, method, 'status', 'loading'], data);
+                  return R.pathOr(null, [resourceType, method, hash(input), 'status', 'loading'], data);
               }
             })(methodfulOperations),
           ),
           success: R.reduce(
             R.and,
             true,
-            R.map(({ resourceType, method, options: { autorun, reset } = {} }) => {
+            R.map(({ resourceType, method, input = {}, options: { autorun, reset } = {} }) => {
               switch (true) {
                 case !this.mounted && autorun:
                   return null;
                 case !this.mounted && reset:
                   return null;
                 default:
-                  return R.pathOr(null, [resourceType, method, 'status', 'success'], data);
+                  return R.pathOr(null, [resourceType, method, hash(input), 'status', 'success'], data);
               }
             })(methodfulOperations),
           ),
           error: R.pipe(
-            R.map(({ resourceType, method, options: { autorun, reset } = {} }) => {
+            R.map(({ resourceType, method, input = {}, options: { autorun, reset } = {} }) => {
               switch (true) {
                 case !this.mounted && autorun:
                   return null;
@@ -227,8 +228,8 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
                   return null;
                 default:
                   return (
-                    R.path([resourceType, method, 'status', 'error'], data)
-                    && `${resourceType}.${method}`
+                    R.path([resourceType, method, hash(input), 'status', 'error'], data)
+                    && `${resourceType}.${method}.${hash(input)}`
                   );
               }
             }),
@@ -360,24 +361,24 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
         R.or,
         false,
         R.map(
-          ({ resourceType, method, pending: { run: pendingRun, reset: pendingReset } }) => !!pendingRun
+          ({ resourceType, method, input = {}, pending: { run: pendingRun, reset: pendingReset } }) => !!pendingRun
             || (pendingReset
               ? null
-              : R.pathOr(null, [resourceType, method, 'status', 'loading'], data)),
+              : R.pathOr(null, [resourceType, method, hash(input), 'status', 'loading'], data)),
         )(operationsWithPending),
       ),
       success: R.reduce(
         R.and,
         true,
-        R.map(({ resourceType, method, pending: { run: pendingRun, reset: pendingReset } }) => (pendingRun || pendingReset
+        R.map(({ resourceType, method, input = {}, pending: { run: pendingRun, reset: pendingReset } }) => (pendingRun || pendingReset
           ? null
-          : R.pathOr(null, [resourceType, method, 'status', 'success'], data)))(operationsWithPending),
+          : R.pathOr(null, [resourceType, method, hash(input), 'status', 'success'], data)))(operationsWithPending),
       ),
       error: R.pipe(
-        R.map(({ resourceType, method, pending: { run: pendingRun, reset: pendingReset } = {} }) => (pendingRun || pendingReset
+        R.map(({ resourceType, method, input = {}, pending: { run: pendingRun, reset: pendingReset } = {} }) => (pendingRun || pendingReset
           ? null
-          : R.path([resourceType, method, 'status', 'error'], data)
-              && `${resourceType}.${method}`)),
+          : R.path([resourceType, method, hash(input), 'status', 'error'], data)
+              && `${resourceType}.${method}.${hash(input)}`)),
         R.reject(R.either(R.isNil, R.isEmpty)),
         R.join(', '),
         R.unless(R.isEmpty, R.concat('Got error in ')),
@@ -385,8 +386,8 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
     };
 
     useEffect(() => {
-      R.forEach(({ resourceType, method, pending: { reset: pendingReset } }) => {
-        pendingReset && actionCreators[resourceType].reset({ cargo: { method } });
+      R.forEach(({ resourceType, method, input = {}, pending: { reset: pendingReset } }) => {
+        pendingReset && actionCreators[resourceType].reset({ cargo: { method, input } });
       })(operationsWithPending);
     });
 
