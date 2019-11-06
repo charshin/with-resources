@@ -136,7 +136,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
         const externalProps = R.omit(internalProps, this.props);
         R.forEach(
           ({
-            resourceType, method, input, options: { autorun, useLast, reset } = {},
+            resourceType, method, input = {}, options: { autorun, useLast, reset } = {},
           }) => {
             reset && actionCreators[resourceType].reset({ cargo: { method, input } });
             autorun
@@ -160,7 +160,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
         const { actionCreators } = this.props;
         R.map(
           ({
-            resourceType, method, input, options: { runOnInputChange = true, useLast } = {},
+            resourceType, method, input = {}, options: { runOnInputChange = true, useLast } = {},
           }) => runOnInputChange
             && R.is(Function, input)
             && do {
@@ -293,14 +293,15 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
       R.pipe(
         R.juxt([
           ({
-            resourceType, method, input, options: { autorun, reset } = {},
+            resourceType, method, input = {}, options: { autorun, reset } = {},
           }) => ({
             run:
               autorun
               && R.pipe(
                 R.find(R.whereEq({ resourceType, method })),
-                R.prop('input'),
-                R.complement(R.identical)(input),
+                R.propOr({}, 'input'),
+                hash.bind(null),
+                R.complement(R.equals)(hash(input)),
               )(prevOperations),
             reset:
               ['once', 'always'].includes(reset)
@@ -396,7 +397,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
         ({
           resourceType,
           method,
-          input,
+          input = {},
           options: { useLast } = {},
           pending: { run: pendingRun },
         }) => {
