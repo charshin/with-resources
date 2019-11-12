@@ -1,18 +1,12 @@
 /* eslint-disable no-underscore-dangle, import/no-mutable-exports */
-import React, { useEffect, useCallback } from 'react';
+import React, { useRef, useEffect, useCallback, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { combineReducers, bindActionCreators } from 'redux';
-import { connect } from 'react-redux';
+import { connect, shallowEqual, useSelector, useDispatch } from 'react-redux';
 import * as R from 'ramda';
 import hash from 'object-hash';
-import { getDisplayName, shallowEqual } from './utils';
-import {
-  StoreContext,
-  useDerivedState,
-  useDispatchableActions,
-  usePrevious,
-  useOldIf,
-} from './hooks';
+import { getDisplayName } from './utils';
+import { usePrevious } from './hooks';
 import Loading from './utils/components/Loading';
 import generateResourcesDucks from './ducks';
 
@@ -35,7 +29,6 @@ export {
   reducer,
   withResources,
   withResourcesGetters,
-  StoreContext,
   useResources,
 };
 
@@ -99,7 +92,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
       (state) => {
         const nextData = R.fromPairs(
           R.map(
-            ({ resourceType }) => [resourceType, gettersOf(resourceType).getState(state)],
+            ({ resourceType }) => [resourceType, gettersOf(resourceType).getResource(state)],
             operations,
           ),
         );
@@ -287,142 +280,103 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
     return WithResourcesGetters;
   };
 
-  const useOperationsWithPending = (operations) => {
+  const useRegistry = (operations) => {
     const prevOperations = usePrevious(operations, []);
-    const operationsWithPending = R.map(
-      R.pipe(
-        R.juxt([
-          ({
-            resourceType, method, input = {}, options: { autorun, reset } = {},
-          }) => ({
-            run:
-              autorun
-              && R.pipe(
-                R.find(R.whereEq({ resourceType, method })),
-                R.propOr({}, 'input'),
-                hash.bind(null),
-                R.complement(R.equals)(hash(input)),
-              )(prevOperations),
-            reset:
-              ['once', 'always'].includes(reset)
-              && R.pipe(
-                R.find(R.whereEq({ resourceType, method })),
-                R.path(['options', 'reset']),
-                prevReset => (reset === 'once' && prevReset !== 'once') || reset === 'always',
-              )(prevOperations),
-          }),
-          R.identity,
-        ]),
-        R.apply(R.assoc('pending')),
-      ),
-    )(operations);
-    return operationsWithPending;
+    const register = R.difference(operations, prevOperations);
+    const deregister = R.difference(prevOperations, operations);
+    return { register, deregister };
   };
 
   useResources = (rawOperations) => {
-    const operations = mergeOperations(rawOperations);
+    const operations = R.uniqBy(R.omit(['options']))(rawOperations);
     const methodfulOperations = R.filter(R.prop('method'))(operations);
+    const optionslessMethodfulOperations = R.map(R.omit(['options']))(methodfulOperations);
 
-    // console.log('%coperations', 'font-size: 12px; color: #00b3b3', operations);
+    // console.log('%coperations', 'font-size: 12px; color: lightcoral', operations);
+    // console.log('%cmethodfulOperations', 'font-size: 12px; color: lightcoral', methodfulOperations);
+    // console.log('%coptionslessMethodfulOperations', 'font-size: 12px; color: lightcoral', optionslessMethodfulOperations);
 
-    const hasSameRcSet = (prevOperations, nextOperations) => {
-      const prevRcSet = new Set(R.map(R.prop('resourceType'))(prevOperations));
-      const nextRcSet = new Set(R.map(R.prop('resourceType'))(nextOperations));
-      return R.equals(prevRcSet, nextRcSet);
-    };
+    const currRegisteredOperationsRef = useRef(optionslessMethodfulOperations);
+    currRegisteredOperationsRef.current = optionslessMethodfulOperations;
 
-    /* NOTE:
-      We only re-connect to redux store if the computed set of resource types changes
-    */
-    const mapState = useCallback(
-      state => R.pipe(
-        R.map(({ resourceType }) => [resourceType, gettersOf(resourceType).getState(state)]),
-        R.fromPairs,
-      )(operations),
-      [useOldIf(operations, hasSameRcSet, [])],
-    );
-    const bindDispatch = useCallback(
-      dispatch => R.pipe(
-        R.map(({ resourceType }) => [
-          resourceType,
-          bindActionCreators(actionCreatorsOf(resourceType), dispatch),
-        ]),
-        R.fromPairs,
-      )(operations),
-      [useOldIf(operations, hasSameRcSet, [])],
-    );
+    const registry = useRegistry(optionslessMethodfulOperations);
 
-    // TODO: Re-implement using useSelector & useDispatch
-    const data = useDerivedState(mapState);
-    const actionCreators = useDispatchableActions(bindDispatch);
-    const operationsWithPending = useOperationsWithPending(methodfulOperations);
+    const data = useSelector(state => R.pipe(
+      R.map(({ resourceType }) => [resourceType, gettersOf(resourceType).getResource(state)]),
+      R.fromPairs,
+    )(operations), shallowEqual);
+    const dispatch = useDispatch();
+    const actionCreators = useMemo(() => R.pipe(
+      R.map(({ resourceType }) => [
+        resourceType,
+        bindActionCreators(actionCreatorsOf(resourceType), dispatch),
+      ]),
+      R.fromPairs,
+    )(operations), [operations, dispatch]);
 
-    const status = {
-      loading: R.reduce(
-        R.or,
-        false,
-        R.map(
-          ({ resourceType, method, input = {}, pending: { run: pendingRun, reset: pendingReset } }) => !!pendingRun
-            || (pendingReset
-              ? null
-              : R.pathOr(null, [resourceType, method, hash(input), 'status', 'loading'], data)),
-        )(operationsWithPending),
-      ),
-      success: R.reduce(
-        R.and,
-        true,
-        R.map(({ resourceType, method, input = {}, pending: { run: pendingRun, reset: pendingReset } }) => (pendingRun || pendingReset
-          ? null
-          : R.pathOr(null, [resourceType, method, hash(input), 'status', 'success'], data)))(operationsWithPending),
-      ),
-      error: R.pipe(
-        R.map(({ resourceType, method, input = {}, pending: { run: pendingRun, reset: pendingReset } = {} }) => (pendingRun || pendingReset
-          ? null
-          : R.path([resourceType, method, hash(input), 'status', 'error'], data)
-              && `${resourceType}.${method}.${hash(input)}`)),
-        R.reject(R.either(R.isNil, R.isEmpty)),
-        R.join(', '),
-        R.unless(R.isEmpty, R.concat('Got error in ')),
-      )(operationsWithPending),
-    };
+    const currActionCreatorsRef = useRef(actionCreators);
+    currActionCreatorsRef.current = actionCreators;
 
     useEffect(() => {
-      R.forEach(({ resourceType, method, input = {}, pending: { reset: pendingReset } }) => {
-        pendingReset && actionCreators[resourceType].reset({ cargo: { method, input } });
-      })(operationsWithPending);
+      R.forEach(({ resourceType, method, input = {} }) => {
+        actionCreators[resourceType].register({
+          cargo: { method, input },
+          options: R.pipe(
+            R.find(R.whereEq({ resourceType, method, input })),
+            R.prop('options'),
+          )(methodfulOperations),
+        });
+      })(registry.register);
+      R.forEach(({ resourceType, method, input = {} }) => {
+        actionCreators[resourceType].deregister({
+          cargo: { method, input },
+          options: R.pipe(
+            R.find(R.whereEq({ resourceType, method, input })),
+            R.prop('options'),
+          )(methodfulOperations),
+        });
+      })(registry.deregister);
     });
 
-    useEffect(() => {
-      R.forEach(
-        ({
-          resourceType,
-          method,
-          input = {},
-          options: { useLast } = {},
-          pending: { run: pendingRun },
-        }) => {
-          pendingRun
-            && actionCreators[resourceType].ajax({
-              cargo: { method, input },
-              options: { useLast },
-            });
-        },
-      )(operationsWithPending);
-    });
+    useEffect(() => () => {
+      R.forEach(({ resourceType, method, input = {} }) => {
+        currActionCreatorsRef.current[resourceType].deregister({
+          cargo: { method, input },
+          options: R.pipe(
+            R.find(R.whereEq({ resourceType, method, input })),
+            R.prop('options'),
+          )(methodfulOperations),
+        });
+      })(currRegisteredOperationsRef.current);
+    }, []);
 
-    // console.log('%cuseResources', 'font-size: 12px; color: #00b3b3', {
-    //   data: {
-    //     ...data,
-    //     status,
-    //   },
-    //   actionCreators,
-    // });
+    // const status = {
+    //   loading: R.reduce(
+    //     R.or,
+    //     false,
+    //     R.map(({ resourceType, method, input = {} }) => R.pathOr(
+    //       null, [resourceType, method, hash(input), 'status', 'loading'], data,
+    //     ))(optionslessMethodfulOperations),
+    //   ),
+    //   success: R.reduce(
+    //     R.and,
+    //     true,
+    //     R.map(({ resourceType, method, input = {} }) => R.pathOr(
+    //       null, [resourceType, method, hash(input), 'status', 'success'], data,
+    //     ))(optionslessMethodfulOperations),
+    //   ),
+    //   error: R.pipe(
+    //     R.map(({ resourceType, method, input = {} }) => R.path(
+    //       [resourceType, method, hash(input), 'status', 'error'], data,
+    //     ) && `${resourceType}.${method}.${hash(input)}`),
+    //     R.reject(R.either(R.isNil, R.isEmpty)),
+    //     R.join(', '),
+    //     R.unless(R.isEmpty, R.concat('Got error in ')),
+    //   )(optionslessMethodfulOperations),
+    // };
 
     return {
-      data: {
-        ...data,
-        status,
-      },
+      data,
       actionCreators,
     };
   };
@@ -436,7 +390,6 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
     reducer,
     withResources,
     withResourcesGetters,
-    StoreContext,
     useResources,
   };
 };
