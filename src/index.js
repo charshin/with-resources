@@ -314,6 +314,8 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
       R.fromPairs,
     )(operations), [operations, dispatch]);
 
+    const prevActionCreators = usePrevious(actionCreators, actionCreators);
+
     const currActionCreatorsRef = useRef(actionCreators);
     currActionCreatorsRef.current = actionCreators;
 
@@ -328,7 +330,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
         });
       })(registry.register);
       R.forEach(({ resourceType, method, input = {} }) => {
-        actionCreators[resourceType].deregister({
+        prevActionCreators[resourceType].deregister({
           cargo: { method, input },
           options: R.pipe(
             R.find(R.whereEq({ resourceType, method, input })),
