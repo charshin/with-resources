@@ -1,6 +1,6 @@
 {
   "name": "with-resources",
-  "version": "2.2.1",
+  "version": "2.3.0",
   "description": "A higher order component to help fetch resources",
   "main": "build/lib/index.js",
   "module": "build/es/index.js",
