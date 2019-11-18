@@ -236,6 +236,7 @@ const createResourceDuck = ({ reduxPath, DM }) => (resourceType) => {
               [hashedInput]: {
                 $auto: {
                   $merge: {
+                    input,
                     status: { loading: true, success: null, error: null },
                   },
                 },
@@ -288,6 +289,13 @@ const createResourceDuck = ({ reduxPath, DM }) => (resourceType) => {
                 $auto: {
                   $merge: {
                     status: { loading: false, success: false, error },
+                  },
+                  meta: {
+                    $auto: {
+                      $merge: {
+                        hot: null,
+                      },
+                    },
                   },
                 },
               },

@@ -1,12 +1,12 @@
 /* eslint-disable no-underscore-dangle, import/no-mutable-exports */
-import React, { useRef, useEffect, useCallback, useMemo } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
 import { combineReducers, bindActionCreators } from 'redux';
 import { connect, shallowEqual, useSelector, useDispatch } from 'react-redux';
 import * as R from 'ramda';
 import hash from 'object-hash';
 import { getDisplayName } from './utils';
-import { usePrevious } from './hooks';
+import { usePrevious, useOldIf } from './hooks';
 import Loading from './utils/components/Loading';
 import generateResourcesDucks from './ducks';
 
@@ -287,6 +287,12 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
     return { register, deregister };
   };
 
+  const hasSameResourceTypeSet = (prevOperations, nextOperations) => {
+    const prevResourceTypeSet = new Set(R.map(R.prop('resourceType'))(prevOperations));
+    const nextResourceTypeSet = new Set(R.map(R.prop('resourceType'))(nextOperations));
+    return R.equals(prevResourceTypeSet, nextResourceTypeSet);
+  };
+
   useResources = (rawOperations) => {
     const operations = R.uniqBy(R.omit(['options']))(rawOperations);
     const methodfulOperations = R.filter(R.prop('method'))(operations);
@@ -312,7 +318,7 @@ export default ({ resourceTypes: _resourceTypes = {}, reduxPath = [], DM }) => {
         bindActionCreators(actionCreatorsOf(resourceType), dispatch),
       ]),
       R.fromPairs,
-    )(operations), [operations, dispatch]);
+    )(operations), [useOldIf(operations, hasSameResourceTypeSet, operations), dispatch]);
 
     const prevActionCreators = usePrevious(actionCreators, actionCreators);
 
