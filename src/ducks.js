@@ -74,6 +74,7 @@ const createResourceDuck = ({ reduxPath, DM }) => (resourceType) => {
             state$.value,
           ) === 1
         ) || (
+          // TODO Introduce option for this, escape hatch for failed ajax with nested usage
           R.path(
             [].concat(reduxPath, [resourceType, method, hash(input), 'status', 'success']),
             state$.value,
